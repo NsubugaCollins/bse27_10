@@ -375,4 +375,35 @@ export const api = {
     if (!res.ok) throw new Error('Failed to re-index RAG knowledge base');
     return res.json();
   },
+
+  // Future Enhancements APIs
+  runRlScheduler: async (steps: any[], itemCount: number = 100, episodes: number = 50) => {
+    const SIM_API_URL = import.meta.env.VITE_SIMULATION_API_URL || 'http://localhost:8000';
+    const res = await fetch(`${SIM_API_URL}/sim/rl-schedule`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': 'dev-secret-key' },
+      body: JSON.stringify({ steps, itemCount, episodes }),
+    });
+    if (!res.ok) throw new Error('Failed to execute RL Autonomous Scheduler');
+    return res.json();
+  },
+
+  calculateCarbonFootprint: async (energyKWh: number, itemCount: number = 100, gridSource: string = 'grid_mix', fuelLiters: number = 0.0) => {
+    const SIM_API_URL = import.meta.env.VITE_SIMULATION_API_URL || 'http://localhost:8000';
+    const res = await fetch(`${SIM_API_URL}/sim/carbon-footprint`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': 'dev-secret-key' },
+      body: JSON.stringify({ energyKWh, itemCount, gridSource, fuelLiters }),
+    });
+    if (!res.ok) throw new Error('Failed to calculate carbon footprint');
+    return res.json();
+  },
+
+  getGlobalNetworkSync: async () => {
+    return [
+      { id: 1, site: 'Detroit Plant Alpha', country: 'USA', status: 'SYNCHRONIZED', throughputHourly: 420, energyKW: 185.4, oeePct: 88.5, activeTwinSessions: 4 },
+      { id: 2, site: 'Stuttgart Smart Factory', country: 'Germany', status: 'SYNCHRONIZED', throughputHourly: 510, energyKW: 210.0, oeePct: 92.1, activeTwinSessions: 6 },
+      { id: 3, site: 'Tokyo Robotics Center', country: 'Japan', status: 'SYNCHRONIZED', throughputHourly: 390, energyKW: 145.2, oeePct: 94.8, activeTwinSessions: 3 },
+    ];
+  },
 };

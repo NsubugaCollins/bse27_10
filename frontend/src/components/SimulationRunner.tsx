@@ -75,6 +75,41 @@ export const SimulationRunner: React.FC<SimulationRunnerProps> = ({ selectedFact
   const [eventFilter, setEventFilter] = useState<string>('ALL');
   const [show3dLiveTwin, setShow3dLiveTwin] = useState(false);
 
+  // Future Enhancements States
+  const [rlMode, setRlMode] = useState(false);
+  const [carbonMode, setCarbonMode] = useState(false);
+  const [rlResult, setRlResult] = useState<any>(null);
+  const [carbonResult, setCarbonResult] = useState<any>(null);
+  const [executingRl, setExecutingRl] = useState(false);
+
+  const handleRunRlScheduler = async () => {
+    setExecutingRl(true);
+    try {
+      const selectedProc = processes.find(p => p.id === selectedProcessId);
+      const steps = selectedProc?.steps || [
+        { stepOrder: 1, name: 'CNC Cutting', duration: 5.0, powerConsumption: 12.0 },
+        { stepOrder: 2, name: 'Stamping Press', duration: 3.5, powerConsumption: 35.0 },
+        { stepOrder: 3, name: 'Robot Assembly', duration: 4.0, powerConsumption: 6.0 },
+      ];
+      const res = await api.runRlScheduler(steps, itemCount, 60);
+      setRlResult(res);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setExecutingRl(false);
+    }
+  };
+
+  const handleCalculateCarbon = async () => {
+    try {
+      const energy = latestResult?.totalEnergyKWh || 185.4;
+      const res = await api.calculateCarbonFootprint(energy, itemCount, 'grid_mix', 0.0);
+      setCarbonResult(res);
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
   const fetchData = async () => {
     if (!selectedFactory) return;
     try {
@@ -322,24 +357,36 @@ export const SimulationRunner: React.FC<SimulationRunnerProps> = ({ selectedFact
             <FlaskConical className="h-5 w-5 text-emerald-400" />
             Simulation Control Panel — {selectedFactory.name}
           </h3>
-          <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
+          <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800 flex-wrap gap-1">
             <button
-              onClick={() => { setScenarioMode(false); setRealworldMode(false); setScenarioResult(null); }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${!scenarioMode && !realworldMode ? 'bg-slate-800 text-slate-100' : 'text-slate-400 hover:text-slate-200'}`}
+              onClick={() => { setScenarioMode(false); setRealworldMode(false); setRlMode(false); setCarbonMode(false); setScenarioResult(null); }}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${!scenarioMode && !realworldMode && !rlMode && !carbonMode ? 'bg-slate-800 text-slate-100' : 'text-slate-400 hover:text-slate-200'}`}
             >
               Single Run
             </button>
             <button
-              onClick={() => { setScenarioMode(true); setRealworldMode(false); setLatestResult(null); setOptimizationResult(null); }}
+              onClick={() => { setScenarioMode(true); setRealworldMode(false); setRlMode(false); setCarbonMode(false); setLatestResult(null); setOptimizationResult(null); }}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${scenarioMode ? 'bg-slate-800 text-slate-100' : 'text-slate-400 hover:text-slate-200'}`}
             >
               Scenario Compare (What-If)
             </button>
             <button
-              onClick={() => { setScenarioMode(false); setRealworldMode(true); setLatestResult(null); setOptimizationResult(null); setScenarioResult(null); }}
+              onClick={() => { setScenarioMode(false); setRealworldMode(true); setRlMode(false); setCarbonMode(false); setLatestResult(null); setOptimizationResult(null); setScenarioResult(null); }}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${realworldMode ? 'bg-slate-800 text-slate-100' : 'text-slate-400 hover:text-slate-200'}`}
             >
               Real-world Comparison
+            </button>
+            <button
+              onClick={() => { setRlMode(true); setScenarioMode(false); setRealworldMode(false); setCarbonMode(false); handleRunRlScheduler(); }}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${rlMode ? 'bg-violet-600 text-white font-bold' : 'text-slate-400 hover:text-violet-300'}`}
+            >
+              Autonomous RL Scheduler
+            </button>
+            <button
+              onClick={() => { setCarbonMode(true); setScenarioMode(false); setRealworldMode(false); setRlMode(false); handleCalculateCarbon(); }}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${carbonMode ? 'bg-emerald-600 text-white font-bold' : 'text-slate-400 hover:text-emerald-300'}`}
+            >
+              Carbon & Sustainability
             </button>
           </div>
         </div>
@@ -675,6 +722,142 @@ export const SimulationRunner: React.FC<SimulationRunnerProps> = ({ selectedFact
           )}
         </div>
       </div>
+
+      {/* RL Autonomous Scheduler Mode UI Panel */}
+      {rlMode && (
+        <div className="space-y-6">
+          <div className="bg-slate-900 border border-violet-500/30 rounded-2xl p-5 shadow-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-violet-500/10 border border-violet-500/30 rounded-xl">
+                  <TrendingUp className="h-5 w-5 text-violet-400" />
+                </div>
+                <div>
+                  <h4 className="text-base font-extrabold text-slate-100">Reinforcement Learning Autonomous Scheduler</h4>
+                  <p className="text-[11px] text-violet-400 font-semibold">Q-Learning Policy Optimization • Dynamic Dispatching Under Machine Breakdowns</p>
+                </div>
+              </div>
+              <button
+                onClick={handleRunRlScheduler}
+                disabled={executingRl}
+                className="px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white font-bold text-xs rounded-xl shadow-lg transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              >
+                {executingRl ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                Re-Train Q-Agent
+              </button>
+            </div>
+
+            {rlResult && (
+              <div className="space-y-5">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="bg-slate-955 p-3 rounded-xl border border-slate-800">
+                    <p className="text-[10px] text-slate-500 uppercase font-bold">Training Episodes</p>
+                    <p className="text-xl font-extrabold text-violet-300">{rlResult.trainedEpisodes}</p>
+                  </div>
+                  <div className="bg-slate-955 p-3 rounded-xl border border-slate-800">
+                    <p className="text-[10px] text-slate-500 uppercase font-bold">Optimal Makespan</p>
+                    <p className="text-xl font-extrabold text-emerald-400">{rlResult.bestMakespanHours} hrs</p>
+                  </div>
+                  <div className="bg-slate-955 p-3 rounded-xl border border-slate-800">
+                    <p className="text-[10px] text-slate-500 uppercase font-bold">State Space Size</p>
+                    <p className="text-xl font-extrabold text-cyan-300">{rlResult.qTableSize} states</p>
+                  </div>
+                  <div className="bg-slate-955 p-3 rounded-xl border border-slate-800">
+                    <p className="text-[10px] text-slate-500 uppercase font-bold">Policy Status</p>
+                    <p className="text-xl font-extrabold text-amber-300">CONVERGED</p>
+                  </div>
+                </div>
+
+                <div className="bg-slate-955 p-4 rounded-xl border border-slate-800">
+                  <h5 className="text-xs font-bold text-slate-300 mb-3">Learned Optimal Dispatch Rules per Step</h5>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs text-left">
+                      <thead>
+                        <tr className="text-slate-400 border-b border-slate-800">
+                          <th className="pb-2">Step</th>
+                          <th className="pb-2">Resource</th>
+                          <th className="pb-2">Learned RL Dispatch Policy</th>
+                          <th className="pb-2">Q-Score</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {rlResult.optimalDispatchRules?.map((rule: any) => (
+                          <tr key={rule.stepOrder} className="border-b border-slate-800/40">
+                            <td className="py-2.5 font-bold text-slate-200">{rule.stepName}</td>
+                            <td className="py-2.5 text-slate-400">{rule.resourceName}</td>
+                            <td className="py-2.5 font-bold text-violet-400">{rule.optimalDispatchPolicy}</td>
+                            <td className="py-2.5 font-mono text-emerald-400">{rule.qScore}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Carbon & Sustainability Dashboard UI Panel */}
+      {carbonMode && (
+        <div className="space-y-6">
+          <div className="bg-slate-900 border border-emerald-500/30 rounded-2xl p-5 shadow-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-emerald-500/10 border border-emerald-500/30 rounded-xl">
+                  <Zap className="h-5 w-5 text-emerald-400" />
+                </div>
+                <div>
+                  <h4 className="text-base font-extrabold text-slate-100">Carbon Footprint &amp; Sustainability Engine</h4>
+                  <p className="text-[11px] text-emerald-400 font-semibold">Scope 1 &amp; Scope 2 Emissions • Energy Efficiency Rating</p>
+                </div>
+              </div>
+              <button
+                onClick={handleCalculateCarbon}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg transition flex items-center gap-1.5 cursor-pointer"
+              >
+                <RefreshCw className="h-4 w-4" /> Recalculate Emissions
+              </button>
+            </div>
+
+            {carbonResult && (
+              <div className="space-y-5">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="bg-slate-955 p-3.5 rounded-xl border border-slate-800">
+                    <p className="text-[10px] text-slate-500 uppercase font-bold">Total CO2 Emissions</p>
+                    <p className="text-xl font-extrabold text-rose-400">{carbonResult.totalCO2EmissionsKg} <span className="text-xs font-normal text-slate-400">kg CO2</span></p>
+                  </div>
+                  <div className="bg-slate-955 p-3.5 rounded-xl border border-slate-800">
+                    <p className="text-[10px] text-slate-500 uppercase font-bold">Carbon Intensity / Item</p>
+                    <p className="text-xl font-extrabold text-amber-300">{carbonResult.co2PerItemKg} <span className="text-xs font-normal text-slate-400">kg/unit</span></p>
+                  </div>
+                  <div className="bg-slate-955 p-3.5 rounded-xl border border-slate-800">
+                    <p className="text-[10px] text-slate-500 uppercase font-bold">Scope 2 Grid Electricity</p>
+                    <p className="text-xl font-extrabold text-cyan-300">{carbonResult.scope2IndirectCO2Kg} <span className="text-xs font-normal text-slate-400">kg</span></p>
+                  </div>
+                  <div className="bg-slate-955 p-3.5 rounded-xl border border-slate-800">
+                    <p className="text-[10px] text-slate-500 uppercase font-bold">Eco Sustainability Rating</p>
+                    <p className="text-lg font-extrabold text-emerald-400">{carbonResult.sustainabilityRating}</p>
+                  </div>
+                </div>
+
+                <div className="bg-slate-955 p-4 rounded-xl border border-slate-800">
+                  <h5 className="text-xs font-bold text-slate-300 mb-2">Actionable Eco-Optimization Recommendations</h5>
+                  <ul className="space-y-2 text-xs text-slate-300">
+                    {carbonResult.ecoRecommendations?.map((rec: string, idx: number) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <span className="text-emerald-400 font-bold">•</span>
+                        <span>{rec}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Scenario Mode Comparisons */}
       {scenarioResult && (

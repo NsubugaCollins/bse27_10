@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 from sim_engine import FactorySimulation
-from optimizer import GeneticOptimizer
+from optimizer import GeneticOptimizer, RLScheduler, CarbonFootprintCalculator
 from contextlib import asynccontextmanager
 import uvicorn
 import logging
@@ -833,6 +833,40 @@ def rag_ingest():
     """Refresh the RAG vector index from markdown SOP and manual documents."""
     rag_engine._ingest_seed_knowledge()
     return {"status": "SUCCESS", "message": "RAG Knowledge Base re-indexed successfully."}
+
+
+# ---------------------------------------------------------------------------
+# Advanced Optimization & Future Enhancements Endpoints
+# ---------------------------------------------------------------------------
+class RLScheduleRequest(BaseModel):
+    steps: List[Dict[str, Any]] = Field(..., description="Process steps list")
+    itemCount: int = Field(100, description="Items count")
+    episodes: int = Field(50, description="RL training episodes")
+
+class CarbonFootprintRequest(BaseModel):
+    energyKWh: float = Field(..., description="Total Energy in kWh")
+    itemCount: int = Field(100, description="Item count")
+    gridSource: str = Field("grid_mix", description="Power grid mix type")
+    fuelLiters: float = Field(0.0, description="Direct fuel consumption")
+
+@app.post("/sim/rl-schedule", tags=["Autonomous RL Scheduler"], dependencies=[Depends(verify_api_key)])
+def run_rl_scheduler(request: RLScheduleRequest):
+    """Execute Reinforcement Learning Q-Learning dynamic dispatch scheduler."""
+    logger.info("Executing RL Autonomous Schedule Optimization for %d steps...", len(request.steps))
+    agent = RLScheduler(steps=request.steps, item_count=request.itemCount)
+    results = agent.train(episodes=request.episodes)
+    return results
+
+@app.post("/sim/carbon-footprint", tags=["Sustainability Engine"], dependencies=[Depends(verify_api_key)])
+def calculate_carbon_footprint(request: CarbonFootprintRequest):
+    """Calculate Scope 1 & Scope 2 CO2 emissions and sustainability rating."""
+    calc = CarbonFootprintCalculator(
+        energy_kwh=request.energyKWh,
+        item_count=request.itemCount,
+        grid_source=request.gridSource,
+        fuel_liters=request.fuelLiters
+    )
+    return calc.calculate()
 
 
 # ---------------------------------------------------------------------------

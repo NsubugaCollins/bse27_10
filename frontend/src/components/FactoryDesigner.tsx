@@ -14,6 +14,12 @@ export const FactoryDesigner: React.FC<FactoryDesignerProps> = ({ onFactorySelec
   const [robots, setRobots] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [show3dPreview, setShow3dPreview] = useState(false);
+  const [showGlobalNetwork, setShowGlobalNetwork] = useState(false);
+  const [globalNetwork, setGlobalNetwork] = useState<any[]>([]);
+
+  useEffect(() => {
+    api.getGlobalNetworkSync().then(data => setGlobalNetwork(data)).catch(() => {});
+  }, []);
 
   // New Factory Form
   const [newFactoryName, setNewFactoryName] = useState('');
@@ -249,18 +255,56 @@ export const FactoryDesigner: React.FC<FactoryDesignerProps> = ({ onFactorySelec
                   {selectedFactory.name} Floor Layout
                 </h3>
 
-                <button
-                  onClick={() => setShow3dPreview(!show3dPreview)}
-                  className={`px-3 py-1.5 text-xs font-semibold rounded-xl border transition flex items-center gap-1.5 cursor-pointer ${
-                    show3dPreview
-                      ? 'bg-cyan-500 text-slate-950 border-cyan-400 font-bold shadow-md'
-                      : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-cyan-500/50 hover:text-cyan-400'
-                  }`}
-                >
-                  <Box className="h-4 w-4" />
-                  {show3dPreview ? 'Switch to 2D Grid' : 'Interactive 3D Preview'}
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowGlobalNetwork(!showGlobalNetwork)}
+                    className={`px-3 py-1.5 text-xs font-semibold rounded-xl border transition flex items-center gap-1.5 cursor-pointer ${
+                      showGlobalNetwork
+                        ? 'bg-violet-500 text-white border-violet-400 font-bold shadow-md'
+                        : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-violet-500/50 hover:text-violet-300'
+                    }`}
+                  >
+                    <Zap className="h-4 w-4" />
+                    {showGlobalNetwork ? 'Hide Global Network' : 'Multi-Factory Sync Network'}
+                  </button>
+
+                  <button
+                    onClick={() => setShow3dPreview(!show3dPreview)}
+                    className={`px-3 py-1.5 text-xs font-semibold rounded-xl border transition flex items-center gap-1.5 cursor-pointer ${
+                      show3dPreview
+                        ? 'bg-cyan-500 text-slate-950 border-cyan-400 font-bold shadow-md'
+                        : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-cyan-500/50 hover:text-cyan-400'
+                    }`}
+                  >
+                    <Box className="h-4 w-4" />
+                    {show3dPreview ? 'Switch to 2D Grid' : 'Interactive 3D Preview'}
+                  </button>
+                </div>
               </div>
+
+              {showGlobalNetwork && (
+                <div className="mb-5 bg-slate-955 p-4 rounded-xl border border-violet-500/30">
+                  <h4 className="text-xs font-bold text-violet-300 mb-3 uppercase tracking-wider">Global Digital Twin Network Synchronization</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {globalNetwork.map((node) => (
+                      <div key={node.id} className="bg-slate-900 p-3 rounded-xl border border-slate-800 flex flex-col justify-between">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-bold text-slate-200">{node.site} ({node.country})</span>
+                          <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                            {node.status}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-[10px] text-slate-400 border-t border-slate-800/60 pt-2">
+                          <div><span className="text-slate-500">Throughput:</span> <span className="font-semibold text-cyan-300">{node.throughputHourly}/h</span></div>
+                          <div><span className="text-slate-500">OEE Score:</span> <span className="font-semibold text-emerald-400">{node.oeePct}%</span></div>
+                          <div><span className="text-slate-500">Power Load:</span> <span className="font-semibold text-amber-300">{node.energyKW} kW</span></div>
+                          <div><span className="text-slate-500">Twin Sessions:</span> <span className="font-semibold text-violet-400">{node.activeTwinSessions} active</span></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {show3dPreview ? (
                 <div className="h-[450px] w-full">

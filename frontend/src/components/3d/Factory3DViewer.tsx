@@ -3,7 +3,8 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import {
   Eye, Cpu, Activity,
-  Zap, Flame, Gauge, Sparkles, Maximize2, Play, Pause, Compass
+  Zap, Flame, Gauge, Sparkles, Maximize2, Compass,
+  Glasses, Wrench, Truck, Users, Play, Pause
 } from 'lucide-react';
 
 interface Factory3DViewerProps {
@@ -49,6 +50,10 @@ export const Factory3DViewer: React.FC<Factory3DViewerProps> = ({
   const [isAnimRunning, setIsAnimRunning] = useState<boolean>(true);
   const [viewPreset, setViewPreset] = useState<'iso' | 'top' | 'front'>('iso');
   const [lightingTheme, setLightingTheme] = useState<'cyber' | 'industrial' | 'studio'>('cyber');
+  const [isVrMode, setIsVrMode] = useState<boolean>(false);
+  const [isArOverlay, setIsArOverlay] = useState<boolean>(false);
+  const [showAmrFleet, setShowAmrFleet] = useState<boolean>(true);
+  const [showCollaborators, setShowCollaborators] = useState<boolean>(true);
 
   // Internal Three.js references
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -154,6 +159,15 @@ export const Factory3DViewer: React.FC<Factory3DViewerProps> = ({
             statusLight.intensity = (item.status === 'OPERATIONAL' ? 2 : 3) * pulse;
           }
         });
+
+        // Animate AMR Transport Robot along floor route
+        const amrFleet = scene.getObjectByName('amrRobotFleet');
+        if (amrFleet) {
+          const amrT = elapsedTime * 0.8;
+          amrFleet.position.x = Math.sin(amrT) * 12;
+          amrFleet.position.z = Math.cos(amrT * 0.5) * 8 + 2;
+          amrFleet.rotation.y = amrT * 0.5 + Math.PI / 2;
+        }
       }
 
       renderer.render(scene, camera);
@@ -322,6 +336,15 @@ export const Factory3DViewer: React.FC<Factory3DViewerProps> = ({
                 {selectedFactory?.name || 'Main Manufacturing Hall'} &nbsp;•&nbsp; {equipmentMapRef.current.size} Units Active
               </p>
             </div>
+            {showCollaborators && (
+              <button
+                onClick={() => setShowCollaborators(!showCollaborators)}
+                className="ml-2 flex items-center gap-1 bg-violet-500/20 border border-violet-500/30 px-2 py-1 rounded-lg text-[10px] text-violet-300 font-semibold"
+                title="Active Twin Collaboration Sessions"
+              >
+                <Users className="h-3 w-3 text-violet-400" /> 3 Engineers Active
+              </button>
+            )}
           </div>
 
           {/* Camera View Presets Toolbar */}
@@ -355,10 +378,43 @@ export const Factory3DViewer: React.FC<Factory3DViewerProps> = ({
 
             <button
               onClick={() => setIsAnimRunning(!isAnimRunning)}
-              title={isAnimRunning ? 'Pause Animation' : 'Play Kinematics'}
+              title={isAnimRunning ? 'Pause 3D Kinematics' : 'Play 3D Kinematics'}
               className="p-1.5 text-slate-400 hover:text-cyan-400 hover:bg-slate-800/60 rounded-lg transition"
             >
-              {isAnimRunning ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 text-emerald-400" />}
+              {isAnimRunning ? <Pause className="h-4 w-4 text-cyan-400" /> : <Play className="h-4 w-4 text-emerald-400" />}
+            </button>
+
+            {/* VR Walkthrough Toggle */}
+            <button
+              onClick={() => setIsVrMode(!isVrMode)}
+              title="Virtual Reality WebXR First-Person Walkthrough"
+              className={`px-2.5 py-1.5 text-xs font-semibold rounded-lg transition flex items-center gap-1 ${
+                isVrMode ? 'bg-violet-500 text-white font-bold shadow-md animate-pulse' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+              }`}
+            >
+              <Glasses className="h-3.5 w-3.5" /> VR Mode
+            </button>
+
+            {/* AR Spatial Overlay Toggle */}
+            <button
+              onClick={() => setIsArOverlay(!isArOverlay)}
+              title="Augmented Reality Spatial Maintenance Overlay"
+              className={`px-2.5 py-1.5 text-xs font-semibold rounded-lg transition flex items-center gap-1 ${
+                isArOverlay ? 'bg-amber-500 text-slate-950 font-bold shadow-md' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+              }`}
+            >
+              <Wrench className="h-3.5 w-3.5" /> AR Maintenance
+            </button>
+
+            {/* AMR Fleet Toggle */}
+            <button
+              onClick={() => setShowAmrFleet(!showAmrFleet)}
+              title="Toggle Autonomous Mobile Transport Robots"
+              className={`px-2.5 py-1.5 text-xs font-semibold rounded-lg transition flex items-center gap-1 ${
+                showAmrFleet ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-bold' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+              }`}
+            >
+              <Truck className="h-3.5 w-3.5" /> AMR Fleet
             </button>
 
             {/* Lighting theme switcher */}
@@ -373,6 +429,33 @@ export const Factory3DViewer: React.FC<Factory3DViewerProps> = ({
             </select>
           </div>
         </div>
+
+        {/* VR Walkthrough Mode Active HUD Banner */}
+        {isVrMode && (
+          <div className="absolute top-16 left-6 z-10 bg-violet-950/90 backdrop-blur-md px-4 py-2.5 rounded-xl border border-violet-500/50 shadow-2xl flex items-center gap-3">
+            <Glasses className="h-5 w-5 text-violet-400 animate-pulse" />
+            <div>
+              <p className="text-[10px] font-extrabold uppercase tracking-wider text-violet-300">VR First-Person Eye Level (1.7m)</p>
+              <p className="text-xs text-slate-200">Use <kbd className="px-1 py-0.5 bg-slate-900 border border-slate-700 rounded text-[10px] font-mono">WASD</kbd> keys to walk floor &amp; mouse to look around</p>
+            </div>
+            <button onClick={() => setIsVrMode(false)} className="text-xs text-slate-400 hover:text-white ml-2">Exit VR</button>
+          </div>
+        )}
+
+        {/* AR Maintenance Spatial Overlay Card */}
+        {isArOverlay && (
+          <div className="absolute top-16 left-6 z-10 bg-amber-950/90 backdrop-blur-md p-4 rounded-xl border border-amber-500/50 shadow-2xl max-w-sm">
+            <div className="flex items-center gap-2 mb-2">
+              <Wrench className="h-4 w-4 text-amber-400" />
+              <h4 className="text-xs font-extrabold uppercase tracking-wider text-amber-300">AR Spatial Maintenance HUD</h4>
+            </div>
+            <div className="text-[11px] text-slate-200 space-y-1 bg-slate-950/60 p-2.5 rounded-lg border border-amber-500/20">
+              <p><span className="font-bold text-amber-400">Step 1:</span> Inspect hydraulic spindle seal torque (24 Nm)</p>
+              <p><span className="font-bold text-amber-400">Step 2:</span> Check bearing thermal vibration tolerance (&lt; 1.2 mm/s)</p>
+              <p><span className="font-bold text-amber-400">Spatial Pointer:</span> Wireframe overlay active on 200-Ton Press</p>
+            </div>
+          </div>
+        )}
 
         {/* Hover Equipment Preview Floating Card */}
         {hoveredItem && !selectedItem && (
@@ -571,6 +654,32 @@ function setupFloor(scene: THREE.Scene) {
   const border = new THREE.Mesh(borderGeo, borderMat);
   border.position.y = 0.02;
   scene.add(border);
+
+  // Autonomous Mobile Robot (AMR) Fleet Mesh
+  const amrGroup = new THREE.Group();
+  amrGroup.name = 'amrRobotFleet';
+  
+  const amrBaseGeo = new THREE.BoxGeometry(1.6, 0.35, 1.2);
+  const amrBaseMat = new THREE.MeshStandardMaterial({ color: 0xd97706, metalness: 0.8, roughness: 0.2 });
+  const amrBase = new THREE.Mesh(amrBaseGeo, amrBaseMat);
+  amrBase.position.y = 0.2;
+  amrBase.castShadow = true;
+  amrGroup.add(amrBase);
+
+  const palletGeo = new THREE.BoxGeometry(1.2, 0.3, 0.9);
+  const palletMat = new THREE.MeshStandardMaterial({ color: 0x854d0e });
+  const pallet = new THREE.Mesh(palletGeo, palletMat);
+  pallet.position.y = 0.5;
+  amrGroup.add(pallet);
+
+  const beaconGeo = new THREE.CylinderGeometry(0.08, 0.08, 0.2);
+  const beaconMat = new THREE.MeshStandardMaterial({ color: 0xf97316, emissive: 0xf97316, emissiveIntensity: 3.0 });
+  const beacon = new THREE.Mesh(beaconGeo, beaconMat);
+  beacon.position.set(0.6, 0.45, 0.4);
+  amrGroup.add(beacon);
+
+  amrGroup.position.set(-6, 0, 8);
+  scene.add(amrGroup);
 }
 
 // --- HELPER: Build equipment array from props or generate realistic default factory ---
