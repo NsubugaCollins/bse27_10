@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../api';
-import { Factory, Cpu, Hammer, Trash2, Plus, Zap, RefreshCw, Layers } from 'lucide-react';
+import { Factory, Cpu, Hammer, Trash2, Plus, Zap, RefreshCw, Layers, Box } from 'lucide-react';
+import { Factory3DViewer } from './3d/Factory3DViewer';
 
 interface FactoryDesignerProps {
   onFactorySelected: (factory: any) => void;
@@ -12,6 +13,7 @@ export const FactoryDesigner: React.FC<FactoryDesignerProps> = ({ onFactorySelec
   const [machines, setMachines] = useState<any[]>([]);
   const [robots, setRobots] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [show3dPreview, setShow3dPreview] = useState(false);
 
   // New Factory Form
   const [newFactoryName, setNewFactoryName] = useState('');
@@ -241,13 +243,36 @@ export const FactoryDesigner: React.FC<FactoryDesignerProps> = ({ onFactorySelec
                   </span>
                 )}
               </div>
-              <h3 className="text-lg font-bold text-slate-100 mb-4 flex items-center gap-2">
-                <Layers className="h-5 w-5 text-cyan-400" />
-                {selectedFactory.name} Floor Layout
-              </h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2">
+                  <Layers className="h-5 w-5 text-cyan-400" />
+                  {selectedFactory.name} Floor Layout
+                </h3>
 
-              {/* Grid visualization */}
-              <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-6 min-h-[160px] grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                <button
+                  onClick={() => setShow3dPreview(!show3dPreview)}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-xl border transition flex items-center gap-1.5 cursor-pointer ${
+                    show3dPreview
+                      ? 'bg-cyan-500 text-slate-950 border-cyan-400 font-bold shadow-md'
+                      : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-cyan-500/50 hover:text-cyan-400'
+                  }`}
+                >
+                  <Box className="h-4 w-4" />
+                  {show3dPreview ? 'Switch to 2D Grid' : 'Interactive 3D Preview'}
+                </button>
+              </div>
+
+              {show3dPreview ? (
+                <div className="h-[450px] w-full">
+                  <Factory3DViewer
+                    selectedFactory={selectedFactory}
+                    machines={machines}
+                    robots={robots}
+                  />
+                </div>
+              ) : (
+                /* Grid visualization */
+                <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-6 min-h-[160px] grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 {machines.map((m) => (
                   <div key={`m-${m.id}`} className="bg-slate-900/60 border border-slate-800 hover:border-cyan-500/40 rounded-xl p-3 flex flex-col justify-between relative group transition">
                     <div className="absolute top-2 right-2 h-2 w-2 rounded-full bg-emerald-400" title="RUNNING" />
@@ -298,7 +323,8 @@ export const FactoryDesigner: React.FC<FactoryDesignerProps> = ({ onFactorySelec
                   </div>
                 )}
               </div>
-            </div>
+            )}
+          </div>
 
             {/* Config Forms: Add Machine & Add Robot side-by-side */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

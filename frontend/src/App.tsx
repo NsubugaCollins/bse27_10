@@ -5,15 +5,17 @@ import { ProcessDesigner } from './components/ProcessDesigner';
 import { SimulationRunner } from './components/SimulationRunner';
 import PredictiveMaintenance from './components/PredictiveMaintenance';
 import { AiAssistant } from './components/AiAssistant';
+import { Factory3DViewer } from './components/3d/Factory3DViewer';
 import {
   Activity, Factory, Layers, FlaskConical, LogOut,
-  User, ChevronRight, Menu, X, BrainCircuit, Bot,
+  User, ChevronRight, Menu, X, BrainCircuit, Bot, Box,
 } from 'lucide-react';
 
-type Tab = 'factory' | 'process' | 'simulation' | 'predictive' | 'rag_copilot';
+type Tab = 'factory' | 'process' | 'simulation' | 'predictive' | 'rag_copilot' | '3d_twin';
 
 const NAV_ITEMS: { id: Tab; label: string; icon: React.ElementType; accent: string }[] = [
   { id: 'factory',    label: 'Factory Designer',        icon: Factory,       accent: 'text-cyan-400' },
+  { id: '3d_twin',    label: '3D Digital Twin',         icon: Box,           accent: 'text-sky-400' },
   { id: 'process',    label: 'Process Designer',        icon: Layers,        accent: 'text-violet-400' },
   { id: 'simulation', label: 'Simulation & AI',         icon: FlaskConical,  accent: 'text-emerald-400' },
   { id: 'predictive', label: 'Predictive Maintenance',  icon: BrainCircuit,  accent: 'text-amber-400' },
@@ -180,6 +182,11 @@ export default function App() {
               selectedFactory={selectedFactory}
               onFactorySelected={setSelectedFactory}
             />
+          )}
+          {activeTab === '3d_twin' && (
+            <div className="p-6 h-full flex flex-col">
+              <Factory3DViewer selectedFactory={selectedFactory} />
+            </div>
           )}
           {activeTab === 'process' && (
             <ProcessDesigner

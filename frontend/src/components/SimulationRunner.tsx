@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../api';
+import { Factory3DViewer } from './3d/Factory3DViewer';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer,
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
@@ -7,7 +8,7 @@ import {
 import {
   PlayCircle, FlaskConical, Zap, AlertTriangle, TrendingUp,
   Clock, BarChart2, Target, ChevronRight, Loader2,
-  FileText, Printer, Plus, Trash2, RefreshCw
+  FileText, Printer, Plus, Trash2, RefreshCw, Box
 } from 'lucide-react';
 
 interface SimulationRunnerProps {
@@ -72,6 +73,7 @@ export const SimulationRunner: React.FC<SimulationRunnerProps> = ({ selectedFact
 
   // Event Log Filter
   const [eventFilter, setEventFilter] = useState<string>('ALL');
+  const [show3dLiveTwin, setShow3dLiveTwin] = useState(false);
 
   const fetchData = async () => {
     if (!selectedFactory) return;
@@ -804,6 +806,44 @@ export const SimulationRunner: React.FC<SimulationRunnerProps> = ({ selectedFact
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* 3D Live Digital Twin Toggle & View */}
+      {!realworldMode && latestResult && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between bg-slate-900 border border-slate-800 rounded-2xl p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-sky-500/10 border border-sky-500/30 rounded-xl">
+                <Box className="h-5 w-5 text-sky-400" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-slate-100">Live 3D Digital Twin Simulation Stream</h4>
+                <p className="text-[11px] text-slate-400">Watch animated kinematics, conveyor flows, and machine health status in 3D WebGL</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShow3dLiveTwin(!show3dLiveTwin)}
+              className={`px-4 py-2 text-xs font-bold rounded-xl border transition flex items-center gap-2 cursor-pointer ${
+                show3dLiveTwin
+                  ? 'bg-sky-500 text-slate-950 border-sky-400 shadow-lg'
+                  : 'bg-slate-955 text-slate-200 border-slate-800 hover:border-sky-500/50 hover:text-sky-300'
+              }`}
+            >
+              <Box className="h-4 w-4" />
+              {show3dLiveTwin ? 'Hide 3D View' : 'Launch Live 3D Twin View'}
+            </button>
+          </div>
+
+          {show3dLiveTwin && (
+            <div className="h-[480px] w-full">
+              <Factory3DViewer
+                selectedFactory={selectedFactory}
+                simData={latestResult}
+                simulationRunning={running}
+              />
+            </div>
+          )}
         </div>
       )}
 
