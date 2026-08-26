@@ -62,11 +62,14 @@ public class MachineService {
         return convertToDTO(machineRepository.save(machine));
     }
 
+    private final ProcessStepRepository stepRepository;
+
     @Transactional
     public void deleteMachine(Long id) {
         if (!machineRepository.existsById(id)) {
             throw new IllegalArgumentException("Machine not found with id: " + id);
         }
+        stepRepository.deleteByResourceTypeAndResourceId("MACHINE", id);
         machineRepository.deleteById(id);
     }
 

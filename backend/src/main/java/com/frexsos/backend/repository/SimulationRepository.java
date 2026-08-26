@@ -8,4 +8,5 @@ import java.util.List;
 @Repository
 public interface SimulationRepository extends JpaRepository<Simulation, Long> {
     List<Simulation> findByFactoryIdOrderByStartTimeDesc(Long factoryId);
+    void deleteByFactoryId(Long factoryId);
 }

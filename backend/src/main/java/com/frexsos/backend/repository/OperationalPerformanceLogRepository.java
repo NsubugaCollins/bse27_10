@@ -9,4 +9,6 @@ import java.util.List;
 public interface OperationalPerformanceLogRepository extends JpaRepository<OperationalPerformanceLog, Long> {
     List<OperationalPerformanceLog> findByFactoryIdOrderByRunDateDesc(Long factoryId);
     List<OperationalPerformanceLog> findByProcessIdOrderByRunDateDesc(Long processId);
+    void deleteByFactoryId(Long factoryId);
+    void deleteByProcessId(Long processId);
 }

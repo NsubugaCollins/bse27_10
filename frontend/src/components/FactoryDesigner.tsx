@@ -122,11 +122,12 @@ export const FactoryDesigner: React.FC<FactoryDesignerProps> = ({ onFactorySelec
   };
 
   const handleDeleteMachine = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this machine?')) return;
     try {
       await api.deleteMachine(id);
       fetchDetails();
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      alert('Failed to delete machine: ' + (err.message || 'Error occurred'));
     }
   };
 
@@ -149,11 +150,12 @@ export const FactoryDesigner: React.FC<FactoryDesignerProps> = ({ onFactorySelec
   };
 
   const handleDeleteRobot = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this robot?')) return;
     try {
       await api.deleteRobot(id);
       fetchDetails();
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      alert('Failed to delete robot: ' + (err.message || 'Error occurred'));
     }
   };
 
@@ -331,9 +333,10 @@ export const FactoryDesigner: React.FC<FactoryDesignerProps> = ({ onFactorySelec
                       </span>
                       <button
                         onClick={() => handleDeleteMachine(m.id)}
-                        className="text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition"
+                        title="Delete Machine"
+                        className="text-slate-400 hover:text-red-400 p-1 rounded hover:bg-slate-800 transition cursor-pointer"
                       >
-                        <Trash2 className="h-3 w-3" />
+                        <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </div>
                   </div>
@@ -353,9 +356,10 @@ export const FactoryDesigner: React.FC<FactoryDesignerProps> = ({ onFactorySelec
                       </span>
                       <button
                         onClick={() => handleDeleteRobot(r.id)}
-                        className="text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition"
+                        title="Delete Robot"
+                        className="text-slate-400 hover:text-red-400 p-1 rounded hover:bg-slate-800 transition cursor-pointer"
                       >
-                        <Trash2 className="h-3 w-3" />
+                        <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </div>
                   </div>

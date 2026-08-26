@@ -8,4 +8,5 @@ import java.util.List;
 @Repository
 public interface MachineRepository extends JpaRepository<Machine, Long> {
     List<Machine> findByFactoryId(Long factoryId);
+    void deleteByFactoryId(Long factoryId);
 }

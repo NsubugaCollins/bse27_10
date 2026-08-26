@@ -2,7 +2,8 @@ package com.frexsos.backend.service;
 
 import com.frexsos.backend.dto.FactoryDTO;
 import com.frexsos.backend.model.Factory;
-import com.frexsos.backend.repository.FactoryRepository;
+import com.frexsos.backend.model.ProductionProcess;
+import com.frexsos.backend.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +15,12 @@ import java.util.stream.Collectors;
 public class FactoryService {
 
     private final FactoryRepository factoryRepository;
+    private final MachineRepository machineRepository;
+    private final RobotRepository robotRepository;
+    private final ProductionProcessRepository processRepository;
+    private final ProcessStepRepository stepRepository;
+    private final SimulationRepository simulationRepository;
+    private final OperationalPerformanceLogRepository logRepository;
 
     @Transactional(readOnly = true)
     public List<FactoryDTO> getAllFactories() {
@@ -54,6 +61,17 @@ public class FactoryService {
         if (!factoryRepository.existsById(id)) {
             throw new IllegalArgumentException("Factory not found with id: " + id);
         }
+        // Clean up process steps for all processes in factory
+        List<ProductionProcess> processes = processRepository.findByFactoryId(id);
+        for (ProductionProcess p : processes) {
+            stepRepository.deleteByProcessId(p.getId());
+            logRepository.deleteByProcessId(p.getId());
+        }
+        processRepository.deleteByFactoryId(id);
+        simulationRepository.deleteByFactoryId(id);
+        logRepository.deleteByFactoryId(id);
+        machineRepository.deleteByFactoryId(id);
+        robotRepository.deleteByFactoryId(id);
         factoryRepository.deleteById(id);
     }
 

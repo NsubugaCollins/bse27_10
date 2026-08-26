@@ -8,4 +8,6 @@ import java.util.List;
 @Repository
 public interface ProcessStepRepository extends JpaRepository<ProcessStep, Long> {
     List<ProcessStep> findByProcessIdOrderByStepOrderAsc(Long processId);
+    void deleteByProcessId(Long processId);
+    void deleteByResourceTypeAndResourceId(String resourceType, Long resourceId);
 }

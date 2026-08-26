@@ -8,4 +8,5 @@ import java.util.List;
 @Repository
 public interface ProductionProcessRepository extends JpaRepository<ProductionProcess, Long> {
     List<ProductionProcess> findByFactoryId(Long factoryId);
+    void deleteByFactoryId(Long factoryId);
 }

@@ -50,11 +50,15 @@ public class ProcessService {
         return convertToDTO(saved);
     }
 
+    private final OperationalPerformanceLogRepository logRepository;
+
     @Transactional
     public void deleteProcess(Long id) {
         if (!processRepository.existsById(id)) {
             throw new IllegalArgumentException("Process not found with id: " + id);
         }
+        stepRepository.deleteByProcessId(id);
+        logRepository.deleteByProcessId(id);
         processRepository.deleteById(id);
     }
 

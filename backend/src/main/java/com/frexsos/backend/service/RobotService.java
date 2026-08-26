@@ -64,11 +64,14 @@ public class RobotService {
         return convertToDTO(robotRepository.save(robot));
     }
 
+    private final ProcessStepRepository stepRepository;
+
     @Transactional
     public void deleteRobot(Long id) {
         if (!robotRepository.existsById(id)) {
             throw new IllegalArgumentException("Robot not found with id: " + id);
         }
+        stepRepository.deleteByResourceTypeAndResourceId("ROBOT", id);
         robotRepository.deleteById(id);
     }
 
