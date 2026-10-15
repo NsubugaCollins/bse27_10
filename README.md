@@ -3,7 +3,7 @@
 Factory Simulation is a full-stack manufacturing simulation platform with:
 
 - a React + TypeScript frontend
-- a Spring Boot backend
+- a Spring Boot factory orchestrator
 - a Python/FastAPI simulation service
 - PostgreSQL for persistent data
 
@@ -44,7 +44,7 @@ sudo docker-compose up -d --build
 Then open the app in your browser:
 
 - Frontend: http://localhost/
-- Backend health check: http://localhost:8081/actuator/health
+- Factory orchestrator health check: http://localhost:8081/actuator/health
 
 ## Stop the project
 
@@ -55,7 +55,7 @@ sudo docker-compose down
 ## Project structure
 
 - `frontend/` — React/Vite application
-- `backend/` — Spring Boot REST API
+- `factory-orchestrator/` — Spring Boot API gateway and orchestrator
 - `simulation/` — Python simulation service
 - `data/` — datasets used by the simulation workflow
 - `docker-compose.yml` — container orchestration

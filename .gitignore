@@ -35,3 +35,7 @@ data/
 
 # OS files
 .DS_Store
+
+# build artifacts
+**/target/
+**/bin/
