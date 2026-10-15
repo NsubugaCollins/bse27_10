@@ -156,8 +156,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      backend:
-        condition: service_healthy
+      simulation:
+        condition: service_started
     ports:
       - "8084:8084"
     healthcheck:
